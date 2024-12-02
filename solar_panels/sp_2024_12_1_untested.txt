@@ -13,12 +13,13 @@ alias DrainedPower r4
 alias DeltaPower r5
 alias DeltaPowerColor r6
 alias BatteryAverage r7
-alias BatteryAverageColor r8
+alias BatteryAverageInP r8
+alias BatteryAverageColor r9
 
 # hashes
-# alias SolarPanelHash r9
-# alias SolidFuelGeneratorHash r10
-# alias StructureBatteryHash r11
+# alias SolarPanelHash r10
+# alias SolidFuelGeneratorHash r11
+# alias StructureBatteryHash r12
 
 # define threshold values
 define BatteryRedTreshold 20
@@ -37,6 +38,9 @@ define SolidFuelGeneratorHash 813146305
 # define directions of sensor and panel power ports
 define SENSORDATAANGLE 0
 define PANELPOWERANGLE 90
+
+define GENERATORTRESHOLDON 30
+define GENERATORTRESHOLDOFF 50
 
 # define colors
 define BlueColor 0
@@ -66,6 +70,16 @@ add AngleHorizontal AngleHorizontal CorrectionAngle
 sb SolarPanelHash Vertical AngleVertical
 sb SolarPanelHash Horizontal AngleHorizontal
 
+# Generator switch
+lb BatteryAverage StructureBatteryHash Ratio Average
+mul BatteryAverageInP BatteryAverage 100
+trunc BatteryAverageInP BatteryAverageInP
+brlt BatteryAverageInP GENERATORTRESHOLDOFF 2
+sb SolidFuelGeneratorHash On 0
+brgt BatteryAverageInP GENERATORTRESHOLDON 2
+sb SolidFuelGeneratorHash On 1
+
+
 # Delta Power Display
 bdns DPDisplay no_dp_display
 lb GeneratedPower SolarPanelHash Charge Sum
@@ -83,7 +97,6 @@ no_dp_display:
 
 # Battery Percentage Display
 bdns BPDisplay no_bp_display
-lb BatteryAverage StructureBatteryHash Ratio Average
 
 move BatteryAverageColor BlueColor
 brge BatteryAverage BatteryGreenTreshold 2
