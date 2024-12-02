@@ -28,12 +28,12 @@ define BatteryGreenTreshold 100 # if >= 100 - Blue
 
 
 # define hashes
-define SolarPanelHash -539224550
-# HASH("StructureSolarPanelDual")
-define StructureBatteryHash -400115994
-# HASH("StructureSolarPanelDual")
-define SolidFuelGeneratorHash 813146305
-# HASH("StructureSolidFuelGenerator")
+define SolarPanelHash HASH("StructureSolarPanelDual")
+#
+define StructureBatteryHash HASH("StructureBattery")
+#
+define SolidFuelGeneratorHash HASH("StructureSolidFuelGenerator")
+
 
 # define directions of sensor and panel power ports
 define SENSORDATAANGLE 0
@@ -84,7 +84,7 @@ sb SolidFuelGeneratorHash On 1
 bdns DPDisplay no_dp_display
 lb GeneratedPower SolarPanelHash Charge Sum
 # maybe Average ?
-lb DrainedPower StructureBatteryHash PowerActual Sum
+lb DrainedPower StructureBatteryHash PowerActual Average
 sub DeltaPower GeneratedPower DrainedPower
 
 move DeltaPowerColor GreenColor
