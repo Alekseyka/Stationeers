@@ -29,9 +29,7 @@ define BatteryGreenTreshold 100 # if >= 100 - Blue
 
 # define hashes
 define SolarPanelHash HASH("StructureSolarPanelDual")
-#
 define StructureBatteryHash HASH("StructureBattery")
-#
 define SolidFuelGeneratorHash HASH("StructureSolidFuelGenerator")
 
 
@@ -41,12 +39,6 @@ define PANELPOWERANGLE 90
 
 define GENERATORTRESHOLDON 30
 define GENERATORTRESHOLDOFF 50
-
-# define colors
-define BlueColor 0
-define GreenColor 2
-define OrangeColor 3
-define RedColor 4
 
 # calculate horizontal correction
 sub CorrectionAngle SENSORDATAANGLE PANELPOWERANGLE
@@ -81,33 +73,35 @@ sb SolidFuelGeneratorHash On 1
 
 
 # Delta Power Display
-bdns DPDisplay no_dp_display
+bdns DPDisplay NoDpDisplay
 lb GeneratedPower SolarPanelHash Charge Sum
 # maybe Average ?
 lb DrainedPower StructureBatteryHash PowerActual Average
 sub DeltaPower GeneratedPower DrainedPower
 
-move DeltaPowerColor GreenColor
+move DeltaPowerColor Color.Green
 brge DeltaPower 0 2 # if DeltaPower>=0 jump 2 lines
-move DeltaPowerColor RedColor
+move DeltaPowerColor Color.Red
 
 s DPDisplay Setting DeltaPower
 s DPDisplay Color DeltaPowerColor
-no_dp_display:
+NoDpDisplay:
 
 # Battery Percentage Display
-bdns BPDisplay no_bp_display
+bdns BPDisplay NoBpDisplay
 
-move BatteryAverageColor BlueColor
-brge BatteryAverage BatteryGreenTreshold 2
-move BatteryAverageColor GreenColor
-brge BatteryAverage BatteryOrangeTreshold 2
-move BatteryAverageColor OrangeColor
-brge BatteryAverage BatteryRedTreshold 2
-move BatteryAverageColor RedColor
+move BatteryAverageColor Color.Blue
+brge BatteryAverageInP BatteryGreenTreshold 2
+move BatteryAverageColor Color.Green
+
+brge BatteryAverageInP BatteryOrangeTreshold 2
+move BatteryAverageColor Color.Orange
+
+brge BatteryAverageInP BatteryRedTreshold 2
+move BatteryAverageColor Color.Red
 
 s BPDisplay Setting BatteryAverage
 s BPDisplay Color BatteryAverageColor
-no_bp_display:
+NoBpDisplay:
 
 j start
