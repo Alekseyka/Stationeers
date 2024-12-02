@@ -1,0 +1,100 @@
+alias Sensor d0 # Kit (Sensor) > Daylight Sensor
+# Place sensor facing UP, not in an enclosed space
+alias DPDisplay d1 # Delta Power Display
+alias BPDisplay d2 # Battery Percentage Display
+
+# solar panel angles
+alias AngleVertical r0
+alias AngleHorizontal r1
+alias CorrectionAngle r2
+
+alias GeneratedPower r3
+alias DrainedPower r4
+alias DeltaPower r5
+alias DeltaPowerColor r6
+alias BatteryAverage r7
+alias BatteryAverageColor r8
+
+# hashes
+# alias SolarPanelHash r9
+# alias SolidFuelGeneratorHash r10
+# alias StructureBatteryHash r11
+
+# define threshold values
+define BatteryRedTreshold 20
+define BatteryOrangeTreshold 50
+define BatteryGreenTreshold 100 # if >= 100 - Blue
+
+
+# define hashes
+define SolarPanelHash -539224550
+# HASH("StructureSolarPanelDual")
+define StructureBatteryHash -400115994
+# HASH("StructureSolarPanelDual")
+define SolidFuelGeneratorHash 813146305
+# HASH("StructureSolidFuelGenerator")
+
+# define directions of sensor and panel power ports
+define SENSORDATAANGLE 0
+define PANELPOWERANGLE 90
+
+# define colors
+define BlueColor 0
+define GreenColor 2
+define OrangeColor 3
+define RedColor 4
+
+# calculate horizontal correction
+sub CorrectionAngle SENSORDATAANGLE PANELPOWERANGLE
+sub CorrectionAngle CorrectionAngle 90
+
+# set Delta Power Display to Power-mode
+brdns DPDisplay 2
+s DPDisplay Mode 2
+
+# set Display to Percentage-mode
+brdns BPDisplay 2
+s BPDisplay Mode 1
+
+start:
+yield
+# Solar Panels rotation
+l AngleVertical Sensor Vertical
+sub AngleVertical 90 AngleVertical
+l AngleHorizontal Sensor Horizontal
+add AngleHorizontal AngleHorizontal CorrectionAngle
+sb SolarPanelHash Vertical AngleVertical
+sb SolarPanelHash Horizontal AngleHorizontal
+
+# Delta Power Display
+bdns DPDisplay no_dp_display
+lb GeneratedPower SolarPanelHash Charge Sum
+# maybe Average ?
+lb DrainedPower StructureBatteryHash PowerActual Sum
+sub DeltaPower GeneratedPower DrainedPower
+
+move DeltaPowerColor GreenColor
+brge DeltaPower 0 2 # if DeltaPower>=0 jump 2 lines
+move DeltaPowerColor RedColor
+
+s DPDisplay Setting DeltaPower
+s DPDisplay Color DeltaPowerColor
+no_dp_display:
+
+# Battery Percentage Display
+bdns BPDisplay no_bp_display
+lb BatteryAverage StructureBatteryHash Ratio Average
+
+move BatteryAverageColor BlueColor
+brge BatteryAverage BatteryGreenTreshold 2
+move BatteryAverageColor GreenColor
+brge BatteryAverage BatteryOrangeTreshold 2
+move BatteryAverageColor OrangeColor
+brge BatteryAverage BatteryRedTreshold 2
+move BatteryAverageColor RedColor
+
+s BPDisplay Setting BatteryAverage
+s BPDisplay Color BatteryAverageColor
+no_bp_display:
+
+j start
