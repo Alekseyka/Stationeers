@@ -1,3 +1,5 @@
+# original script from internet
+
 alias Sensor d0 # Kit (Sensor) > Daylight Sensor
 # Place sensor facing UP, not in an enclosed space
 alias Display d1 # Solar Output Display

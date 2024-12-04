@@ -1,3 +1,5 @@
+# Solar panels rotation + Generator on/off + Delta Power Display + Battery Percentage Display
+
 alias Sensor d0 # Kit (Sensor) > Daylight Sensor
 # Place sensor facing UP, not in an enclosed space
 alias DPDisplay d1 # Delta Power Display
@@ -16,29 +18,22 @@ alias BatteryAverage r7
 alias BatteryAverageInP r8
 alias BatteryAverageColor r9
 
-# hashes
-# alias SolarPanelHash r10
-# alias SolidFuelGeneratorHash r11
-# alias StructureBatteryHash r12
-
 # define threshold values
-define BatteryRedTreshold 20
-define BatteryOrangeTreshold 50
-define BatteryGreenTreshold 100 # if >= 100 - Blue
-
+define BatteryRedThreshold 20
+define BatteryOrangeThreshold 50
+define BatteryGreenThreshold 100 # if >= 100 - Blue
 
 # define hashes
 define SolarPanelHash HASH("StructureSolarPanelDual")
 define StructureBatteryHash HASH("StructureBattery")
 define SolidFuelGeneratorHash HASH("StructureSolidFuelGenerator")
 
-
 # define directions of sensor and panel power ports
 define SENSORDATAANGLE 0
 define PANELPOWERANGLE 90
 
-define GENERATORTRESHOLDON 30
-define GENERATORTRESHOLDOFF 50
+define GENERATORTHRESHOLDON 30
+define GENERATORTHRESHOLDOFF 50
 
 # calculate horizontal correction
 sub CorrectionAngle SENSORDATAANGLE PANELPOWERANGLE
@@ -54,28 +49,40 @@ s BPDisplay Mode 1
 
 start:
 yield
+jal SolarPanelRotation
+jal GeneratorSwitch
+jal DeltaPowerDisplay
+jal BatteryPercentageDisplay
+
+j start
+
 # Solar Panels rotation
+SolarPanelRotation:
 l AngleVertical Sensor Vertical
 sub AngleVertical 90 AngleVertical
 l AngleHorizontal Sensor Horizontal
 add AngleHorizontal AngleHorizontal CorrectionAngle
 sb SolarPanelHash Vertical AngleVertical
 sb SolarPanelHash Horizontal AngleHorizontal
+j ra
 
 # Generator switch
+GeneratorSwitch:
 lb BatteryAverage StructureBatteryHash Ratio Average
 mul BatteryAverageInP BatteryAverage 100
 trunc BatteryAverageInP BatteryAverageInP
-brlt BatteryAverageInP GENERATORTRESHOLDOFF 2
+brlt BatteryAverageInP GENERATORTHRESHOLDOFF 2
 sb SolidFuelGeneratorHash On 0
-brgt BatteryAverageInP GENERATORTRESHOLDON 2
+brgt BatteryAverageInP GENERATORTHRESHOLDON 2
 sb SolidFuelGeneratorHash On 1
+j ra
 
 
 # Delta Power Display
-bdns DPDisplay NoDpDisplay
+DeltaPowerDisplay:
+bdns DPDisplay ra
 lb GeneratedPower SolarPanelHash Charge Sum
-# maybe Average ?
+
 lb DrainedPower StructureBatteryHash PowerActual Average
 sub DeltaPower GeneratedPower DrainedPower
 
@@ -85,23 +92,26 @@ move DeltaPowerColor Color.Red
 
 s DPDisplay Setting DeltaPower
 s DPDisplay Color DeltaPowerColor
-NoDpDisplay:
+j ra
 
 # Battery Percentage Display
-bdns BPDisplay NoBpDisplay
+BatteryPercentageDisplay:
+bdns BPDisplay ra
+
+lb BatteryAverage StructureBatteryHash Ratio Average
+mul BatteryAverageInP BatteryAverage 100
+trunc BatteryAverageInP BatteryAverageInP
 
 move BatteryAverageColor Color.Blue
-brge BatteryAverageInP BatteryGreenTreshold 2
+brge BatteryAverageInP BatteryGreenThreshold 2
 move BatteryAverageColor Color.Green
 
-brge BatteryAverageInP BatteryOrangeTreshold 2
+brge BatteryAverageInP BatteryOrangeThreshold 2
 move BatteryAverageColor Color.Orange
 
-brge BatteryAverageInP BatteryRedTreshold 2
+brge BatteryAverageInP BatteryRedThreshold 2
 move BatteryAverageColor Color.Red
 
 s BPDisplay Setting BatteryAverage
 s BPDisplay Color BatteryAverageColor
-NoBpDisplay:
-
-j start
+j ra
