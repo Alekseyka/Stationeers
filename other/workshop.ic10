@@ -1,0 +1,48 @@
+alias Door d0
+alias Autolathe d1
+alias ElectroPrint d2
+alias PipeBender d3
+alias ToolManufacturer d4
+
+alias Timer r15
+
+define WaitTime 10
+#define Autolathe HASH("336213101")
+#define ElectroPrint HASH("1307165496")
+#define PipeBender HASH("-1888248335")
+#define ToolManufacturer HASH("-465741100")
+
+move Timer 0
+
+start:
+yield
+s db Setting Timer
+l r1 Door Open
+
+brgtz r1 3
+move Timer 0
+j start
+
+add r1 r1 Timer
+brgtz r1 2
+j start
+
+add Timer Timer 1
+brge Timer WaitTime 2
+j start
+
+move Timer 0
+s Door Open 0
+l r2 Autolathe Activate
+brgtz r2 2
+s Autolathe On 0
+l r2 ElectroPrint Activate
+brgtz r2 2
+s ElectroPrint On 0
+l r2 PipeBender Activate
+brgtz r2 2
+s PipeBender On 0
+l r2 ToolManufacturer Activate
+brgtz r2 2
+s ToolManufacturer On 0
+j start
