@@ -1,0 +1,118 @@
+define Int.Pressure 100
+define Ext.Pressure 0
+
+alias Int.Door d0
+alias Ext.Door d1
+alias Int.Vent d2
+alias Ext.Vent d3
+alias Sensor d4
+alias LedLight d5
+
+define Color.Red 4
+define Color.Yellow 5
+define Color.Green 2
+define Mode.Out 1
+define Mode.In 0
+
+alias rT r0
+alias rT2 r1
+alias rTarPressure r2
+
+Init:
+s Int.Vent On 0
+s Ext.Vent On 0
+s Ext.Door Mode 1 #Logic mode
+s Int.Door Mode 1 #Logic mode
+s LedLight Color Color.Green
+s LedLight On 1
+s Int.Door Open 0
+s Ext.Door Open 1
+yield
+
+main:
+jal monitorTrigger
+jal cycleToInt
+jal monitorTrigger
+jal cycleToExt
+j main
+
+cycleToInt:
+push ra
+s Ext.Door Lock 1
+s Int.Door Lock 1
+s Ext.Door Open 0
+s Ext.Vent Mode Mode.Out
+s Ext.Vent On 1
+s LedLight Color Color.Red
+s LedLight On 1
+jal dePressurize
+s Ext.Vent On 0
+s Int.Vent Mode Mode.In
+s Int.Vent PressureExternal Int.Pressure
+move rTarPressure Int.Pressure
+s Int.Vent On 1
+s LedLight Color Color.Yellow
+jal pressurize
+s LedLight Color Color.Green
+s Int.Vent On 0
+s Int.Door Open 1
+s Ext.Door Lock 0
+s Int.Door Lock 0
+pop ra
+j ra
+
+cycleToExt:
+push ra
+s Int.Door Lock 1
+s Ext.Door Lock 1
+s Int.Door Open 0
+s Int.Vent Mode Mode.Out
+s Int.Vent On 1
+s LedLight Color Color.Red
+s LedLight On 1
+jal dePressurize
+s Int.Vent On 0
+s Ext.Vent Mode Mode.In
+s Ext.Vent PressureExternal Ext.Pressure
+move rTarPressure Ext.Pressure
+s Ext.Vent On 1
+s LedLight Color Color.Yellow
+jal pressurize
+s LedLight Color Color.Green
+s Ext.Vent On 0
+s Ext.Door Open 1
+s Int.Door Lock 0
+s Ext.Door Lock 0
+pop ra
+j ra
+
+dePressurize:
+l rT Sensor Pressure
+beqz rT dePressurizeEnd
+l rT LedLight On
+beqz rT dePressurizeEnd
+j dePressurize
+dePressurizeEnd:
+s LedLight On 1
+j ra
+
+pressurize:
+l rT Sensor Pressure
+bge rT rTarPressure pressurizeEnd
+l rT LedLight On
+beqz rT pressurizeEnd
+j pressurize
+pressurizeEnd:
+s LedLight On 1
+j ra
+
+monitorTrigger:
+l rT Int.Door Setting
+l rT2 Ext.Door Setting
+beq rT rT2 monitorTriggerEnd
+l rT LedLight On
+beqz rT monitorTriggerEnd
+yield
+j monitorTrigger
+monitorTriggerEnd:
+j ra
