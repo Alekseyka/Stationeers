@@ -1,0 +1,10 @@
+define CentHash HASH("StructureCentrifuge")
+
+Start:
+yield
+lb r1 CentHash Reagents 0
+lb r0 CentHash Open 0
+select r0 r0 0 50
+sgt r0 r1 r0
+sb CentHash Open r0
+j Start
