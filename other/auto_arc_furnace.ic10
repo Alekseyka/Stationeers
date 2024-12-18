@@ -1,0 +1,52 @@
+define ArcFurnaceHash -247344692
+define LedSmallHash -815193061
+define LedMediumHash -53151617
+define LedLargeHash -1949054743
+define MemoryHash -851746783
+alias ArcFurnace d0
+alias Display d1
+alias Memory d2
+alias Device r0
+alias prefabHash r1
+alias condition r2
+alias idle r3
+alias activate r4
+alias importOccupied r5
+Start:
+move Device 0
+Loop:
+bdns dr0 Count
+l prefabHash dr0 PrefabHash
+beqal prefabHash ArcFurnaceHash ArcFurnaceFunc
+bdns ArcFurnace Count
+beqal prefabHash LedSmallHash DisplayFunc
+beqal prefabHash LedMediumHash DisplayFunc
+beqal prefabHash LedLargeHash DisplayFunc
+beqal prefabHash MemoryHash MemoryFunc
+Count:
+add Device Device 1
+bgt Device 5 Start
+j Loop
+ArcFurnaceFunc:
+alias ArcFurnace dr0
+l idle ArcFurnace Idle
+ls importOccupied ArcFurnace 0 Occupied
+and idle idle importOccupied
+l activate ArcFurnace Activate
+or condition idle activate
+s ArcFurnace On condition
+beqz condition ra
+s ArcFurnace Activate condition
+j ra
+DisplayFunc:
+alias Display dr0
+l condition ArcFurnace On
+s Display On condition
+ls condition ArcFurnace 0 Quantity
+s Display Setting condition
+j ra
+MemoryFunc:
+alias Memory dr0
+l condition ArcFurnace RecipeHash
+s Memory Setting condition
+j ra
